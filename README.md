@@ -1,5 +1,7 @@
 # How to: Use InfluxDB with MQTT and Grafana in containers
 
+[![Build Status](https://dev.azure.com/jcoliz/InfluxDB-MQTT-Grafana-DotNet/_apis/build/status%2FMqttSender%20CI?repoName=jcoliz%2FInfluxDB-MQTT-Grafana-DotNet&branchName=main)](https://dev.azure.com/jcoliz/InfluxDB-MQTT-Grafana-DotNet/_build/latest?definitionId=44&repoName=jcoliz%2FInfluxDB-MQTT-Grafana-DotNet&branchName=main)
+
 This repository demonstrates a baseline MTIG (MQTT -> Telegraf -> InfluxDB -> Grafana) stack
 using Docker images. I've included an example with a .NET MQTT client sending sample data, although this will
 work great with any MQTT client.
