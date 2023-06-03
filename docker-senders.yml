@@ -1,7 +1,7 @@
 version: '3.6'
 services:
   sender:
-    image: docker.io/jcoliz/mqttsender:local-f2a886f
+    image: jcoliz/mqttsender:0.9.1-amd64
     deploy:
       replicas: 3
     restart: always
