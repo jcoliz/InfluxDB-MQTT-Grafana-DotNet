@@ -66,7 +66,7 @@ public class Worker : BackgroundService
 
         var server = _mqttoptions.Value.Server;
         var port = _mqttoptions.Value.Port;
-        
+
         MqttClientOptionsBuilder builder = new MqttClientOptionsBuilder()
                                     .WithClientId(deviceid)
                                     .WithTcpServer(server, Convert.ToInt32(port));
@@ -77,6 +77,22 @@ public class Worker : BackgroundService
                                 .Build();
 
         mqttClient = new MqttFactory().CreateManagedMqttClient();
+
+        mqttClient.ConnectedAsync += (e) => 
+        {
+            _logger.LogInformation("Connection: Connected OK");
+            return Task.CompletedTask;
+        };
+        mqttClient.ConnectingFailedAsync += (e) => 
+        {
+            _logger.LogError(e.Exception,"Connection: Failed");
+            return Task.CompletedTask;
+        };
+        mqttClient.DisconnectedAsync += (e) => 
+        {
+            _logger.LogInformation("Connection: Disconnected {reason}",e.ReasonString);
+            return Task.CompletedTask;
+        };
 
         await mqttClient.StartAsync(options);
 
