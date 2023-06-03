@@ -74,6 +74,16 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./config/grafana/provisioning:/etc/grafana/provisioning
+  sender:
+    image: docker.io/jcoliz/mqttsender:local-338d49a
+    deploy:
+      replicas: 3
+    restart: always
+    environment:
+      - MQTT__SERVER=mqtt
+    depends_on:
+      mqtt:
+        condition: service_healthy
 volumes:
   grafana_data: {}
   influxdb_data: {}

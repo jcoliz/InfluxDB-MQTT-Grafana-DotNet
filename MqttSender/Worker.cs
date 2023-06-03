@@ -101,26 +101,33 @@ public class Worker : BackgroundService
 
     private async Task SendMessage(CancellationToken stoppingToken)
     {
-        var topic = $"{_mqttoptions.Value.Topic}th/{deviceid}";
-
-        var time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var payload = new TempHumidityMessage()
+        try
         {
-            time = time,
-            temp = (time / 100.0) % 100.0,
-            humidity = (time / 1000.0) % 100.0
-        };
-        var json = JsonSerializer.Serialize(payload);
-        
-        var message = new MqttApplicationMessageBuilder()
-            .WithTopic(topic)
-            .WithPayload(json)
-            .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
-            .WithRetainFlag()
-            .Build();
+            var topic = $"{_mqttoptions.Value.Topic}th/{deviceid}";
 
-        await mqttClient!.InternalClient.PublishAsync(message, stoppingToken);
+            var time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var payload = new TempHumidityMessage()
+            {
+                time = time,
+                temp = (time / 100.0) % 100.0,
+                humidity = (time / 1000.0) % 100.0
+            };
+            var json = JsonSerializer.Serialize(payload);
+            
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic(topic)
+                .WithPayload(json)
+                .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+                .WithRetainFlag()
+                .Build();
 
-        _logger.LogInformation("Sent: {topic} {message}", topic, json);
+            await mqttClient!.InternalClient.PublishAsync(message, stoppingToken);
+
+            _logger.LogInformation("Message: Sent {topic} {message}", topic, json);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,"Message: Failed");
+        }
     }
 }
