@@ -1,3 +1,3 @@
 variables:
-  module: '$(System.TeamProject)'
+  module: 'mqttsender'
   platform: 'amd64'
