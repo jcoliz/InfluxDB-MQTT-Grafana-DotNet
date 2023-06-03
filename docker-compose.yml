@@ -1,0 +1,81 @@
+version: '3.6'
+services:
+  mqtt:
+    image: vernemq/vernemq:1.12.6.2
+    container_name: vernemq
+    restart: always
+    ports:
+      - '1883:1883'
+      - '8888:8888'
+    healthcheck:
+      test: curl --fail http://localhost:8888/health || exit 1
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 2s
+    environment:
+      - DOCKER_VERNEMQ_ACCEPT_EULA=yes
+      - DOCKER_VERNEMQ_ALLOW_ANONYMOUS=on
+    volumes:
+      - vernemq_data:/var/lib/vernemq
+  telegraf:
+    image: telegraf:1.26.3-alpine
+    container_name: telegraf
+    restart: always
+    volumes:
+      - ./config/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      mqtt:
+        condition: service_healthy
+    links:
+      - influxdb
+    ports:
+    - '8125:8125'
+  influxdb:
+    image: influxdb:2.7.1-alpine
+    container_name: influxdb
+    restart: always
+    environment:
+      - INFLUXDB_DB=influx
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminadmin
+      - DOCKER_INFLUXDB_INIT_ORG=org
+      - DOCKER_INFLUXDB_INIT_BUCKET=bucket
+      - DOCKER_INFLUXDB_INIT_RETENTION=30d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=example
+    ports:
+      - '8086:8086'
+    healthcheck:
+        test: "curl -f http://localhost:8086/ping || exit 1"
+        interval: 5s
+        timeout: 10s
+        retries: 5
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+  grafana:
+    image: grafana/grafana:9.5.2
+    container_name: grafana
+    restart: always
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=adminadmin
+      - GF_INSTALL_PLUGINS=
+      #- GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/primary-devices-dashboard.json
+    links:
+      - influxdb
+    ports:
+      - '3000:3000'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+volumes:
+  grafana_data: {}
+  influxdb_data: {}
+  vernemq_data: {}
+  
