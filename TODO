@@ -1,0 +1,9 @@
+* Add air quality sensor
+* Add device skew
+* Better fake telemetry
+* Add grafana dashboards
+* Remove grafana login
+* Can I remove influxdb login?
+* Full readme
+* CI
+* CD?
