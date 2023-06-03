@@ -1,0 +1,20 @@
+#
+# Build docker container and push to container registry
+#
+
+# REQUIRED VARIABLES:
+# - azureServiceConnectionName: Connection name for the Docker Registry connection
+
+steps:
+- checkout: self
+  submodules: true
+
+- task: Docker@2
+  displayName: 'Build and Push Container Image'
+  inputs:
+    command: 'buildAndPush'
+    dockerfile: '$(System.DefaultWorkingDirectory)/MqttSender/Dockerfile'
+    buildContext: '$(System.DefaultWorkingDirectory)/MqttSender'
+    tags: $(tags)
+    repository: $(module)
+    containerRegistry: $(azureServiceConnectionName)

@@ -1,0 +1,16 @@
+trigger:
+  tags:
+    include:
+    - '*'
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- template: vars/vars-all.yaml
+- template: vars/vars-ci.yaml
+
+steps:
+- template: steps/docker-build-push.yaml

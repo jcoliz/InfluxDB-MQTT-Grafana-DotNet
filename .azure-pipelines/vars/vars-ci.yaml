@@ -1,0 +1,3 @@
+variables:
+  pool: 'ci'
+  tags: '$(pool)-$(Build.BuildId)-$(platform)'

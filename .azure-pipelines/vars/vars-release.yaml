@@ -1,0 +1,6 @@
+variables:
+  pool: 'release'
+  tags: '$(Build.SourceBranchName)-$(platform)'
+
+# NOTE: Release pool will get ONLY tags WITHOUT a '-' in them, 
+# e.g. "1.1.5-rc.2" will only go to UAT

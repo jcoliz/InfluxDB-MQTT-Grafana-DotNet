@@ -1,0 +1,3 @@
+variables:
+  module: '$(System.TeamProject)'
+  platform: 'amd64'
