@@ -24,16 +24,18 @@ The example client will use the DNS hostname.
 
 ### Payload
 
-The example payload here is JSON. The `time` field will be used for the InfluxDB timestamp, while all the other fields
-will be passed straight through as fields.
+The example payload here is JSON. The `time` field will be used for the InfluxDB timestamp. The fields in the
+`metrics` object will will be passed straight through as fields.
 
 The `th` measurement will show:
 
 ```json
 {
     "time": 1685760473677,
-    "temperature": 28.1,
-    "humidity": 44.5
+    "metrics": {
+        "temperature": 28.1,
+        "humidity": 44.5
+    }
 }
 ```
 
@@ -42,8 +44,10 @@ while the `air` measurement gives
 ```json
 {
     "time": 1685760473677,
-    "aqi": 107.6,
-    "co": 53.6,
-    "no2": 94.1
+    "metrics": {
+        "aqi": 107.6,
+        "co": 53.6,
+        "no2": 94.1
+    }
 }
 ```

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
+using MqttSender.Messages;
 using System.Text.Json;
 
 namespace MqttSender;
@@ -32,7 +33,7 @@ public class Worker : BackgroundService
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                await SendMessage(stoppingToken);
+                await SendMessages(stoppingToken);
                 await Task.Delay(1000, stoppingToken);
             }
 
@@ -99,35 +100,52 @@ public class Worker : BackgroundService
         _logger.LogDebug("Connection: Connecting on {server}:{port}",server,port);
     }
 
-    private async Task SendMessage(CancellationToken stoppingToken)
+    private async Task SendMessages(CancellationToken stoppingToken)
     {
         try
         {
-            var topic = $"{_mqttoptions.Value.Topic}th/{deviceid}";
-
             var time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var payload = new TempHumidityMessage()
+            var th = new TempHumidityMetrics()
             {
-                time = time,
-                temp = (time / 100.0) % 100.0,
-                humidity = (time / 1000.0) % 100.0
+                temp = Math.Round((time / 100.0) % 100.0,2),
+                humidity = Math.Round((time / 1000.0) % 100.0,2)
             };
-            var json = JsonSerializer.Serialize(payload);
-            
-            var message = new MqttApplicationMessageBuilder()
-                .WithTopic(topic)
-                .WithPayload(json)
-                .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
-                .WithRetainFlag()
-                .Build();
+            await SendMeasurement(TempHumidityMetrics.measurement, th, stoppingToken);
 
-            await mqttClient!.InternalClient.PublishAsync(message, stoppingToken);
-
-            _logger.LogInformation("Message: Sent {topic} {message}", topic, json);
+            var aqi = new AirQualtityMetrics()
+            {
+                aqi = Math.Round((time / 100.0) % 100.0,2),
+                co = Math.Round((time / 1500.0) % 100.0,2),
+                no2 = Math.Round((time / 2500.0) % 100.0,2)
+            };
+            await SendMeasurement(AirQualtityMetrics.measurement, aqi, stoppingToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,"Message: Failed");
         }
+    }
+
+    private async Task SendMeasurement(string measurement, object metrics, CancellationToken stoppingToken)
+    {
+        var topic = $"{_mqttoptions.Value.Topic}{measurement}/{deviceid}";
+        var time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var payload = new MessagePayload()
+        {
+            time = time,
+            metrics = metrics
+        };
+        var json = JsonSerializer.Serialize(payload);
+        
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic(topic)
+            .WithPayload(json)
+            .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+            .WithRetainFlag()
+            .Build();
+
+        await mqttClient!.InternalClient.PublishAsync(message, stoppingToken);
+
+        _logger.LogInformation("Message: Sent {topic} {message}", topic, json);
     }
 }

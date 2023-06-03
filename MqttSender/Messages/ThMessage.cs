@@ -1,8 +1,7 @@
-namespace MqttSender;
+namespace MqttSender.Messages;
 
-public record TempHumidityMessage
+public record MessagePayload
 {
     public long time { get; init; }
-    public double temp { get; init; }
-    public double humidity { get; init; }
+    public object? metrics { get; init; }
 }
