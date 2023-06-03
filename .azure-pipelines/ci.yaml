@@ -1,3 +1,5 @@
+# - userName: Registry organization/user prefix
+
 trigger:
   branches:
     include:

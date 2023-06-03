@@ -1,3 +1,5 @@
+# - userName: Registry organization/user prefix
+
 trigger:
   tags:
     include:
@@ -10,7 +12,7 @@ pool:
 
 variables:
 - template: vars/vars-all.yaml
-- template: vars/vars-ci.yaml
+- template: vars/vars-release.yaml
 
 steps:
 - template: steps/docker-build-push.yaml

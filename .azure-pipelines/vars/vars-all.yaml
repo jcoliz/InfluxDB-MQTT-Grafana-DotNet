@@ -1,3 +1,5 @@
+# - userName: Registry organization/user prefix
+
 variables:
-  module: 'mqttsender'
+  module: '$(userName)/mqttsender'
   platform: 'amd64'
