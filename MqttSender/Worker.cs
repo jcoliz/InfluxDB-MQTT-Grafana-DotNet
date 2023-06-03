@@ -15,6 +15,10 @@ public class Worker : BackgroundService
 
     private string? deviceid;
     private IManagedMqttClient? mqttClient;
+    private TempHumidityMetrics retainedth = new TempHumidityMetrics() { temp = 20.0, humidity = 50.0 };
+    private AirQualtityMetrics retainedair = new AirQualtityMetrics() { aqi = 80.0, co = 50.0, no2 = 120.0 };
+
+    private Random? random;
 
     public Worker(ILogger<Worker> logger, IHostApplicationLifetime lifetime, IOptions<MqttOptions> mqttoptions)
     {
@@ -58,6 +62,7 @@ public class Worker : BackgroundService
     private void Provision()
     {
         deviceid = System.Net.Dns.GetHostName();
+        random = new Random(deviceid.GetHashCode());
     }
 
     private async Task Connect()
@@ -104,21 +109,21 @@ public class Worker : BackgroundService
     {
         try
         {
-            var time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var th = new TempHumidityMetrics()
+            // Fake data is a random walk from starting value, of differing magnitudes
+            retainedth = new TempHumidityMetrics()
             {
-                temp = Math.Round((time / 100.0) % 100.0,2),
-                humidity = Math.Round((time / 1000.0) % 100.0,2)
+                temp = Math.Round(retainedth.temp + (random!.NextDouble() - 0.5),3),
+                humidity = Math.Round(retainedth.humidity + (random!.NextDouble() - 0.5) / 2,3)
             };
-            await SendMeasurement(TempHumidityMetrics.measurement, th, stoppingToken);
+            await SendMeasurement(TempHumidityMetrics.measurement, retainedth, stoppingToken);
 
-            var aqi = new AirQualtityMetrics()
+            retainedair = new AirQualtityMetrics()
             {
-                aqi = Math.Round((time / 100.0) % 100.0,2),
-                co = Math.Round((time / 1500.0) % 100.0,2),
-                no2 = Math.Round((time / 2500.0) % 100.0,2)
+                aqi = Math.Round(retainedair.aqi + (random!.NextDouble() - 0.5) * 2,3),
+                co = Math.Round(retainedair.co + (random!.NextDouble() - 0.5) * 3,3),
+                no2 = Math.Round(retainedair.no2 + (random!.NextDouble() - 0.5) * 4,3),
             };
-            await SendMeasurement(AirQualtityMetrics.measurement, aqi, stoppingToken);
+            await SendMeasurement(AirQualtityMetrics.measurement, retainedair, stoppingToken);
         }
         catch (Exception ex)
         {
